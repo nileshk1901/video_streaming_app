@@ -40,3 +40,6 @@ application-*.yml
 # Include a sample configuration
 !application-sample.properties
 !application-sample.yml
+videos/*
+*.mp4
+*.mov
