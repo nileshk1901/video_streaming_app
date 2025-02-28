@@ -43,3 +43,4 @@ application-*.yml
 videos/*
 *.mp4
 *.mov
+videos_hls/

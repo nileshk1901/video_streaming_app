@@ -4,6 +4,7 @@ import com.stream.app.AppConstants;
 import com.stream.app.entities.Video;
 
 import com.stream.app.playload.CustomMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
@@ -27,7 +28,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/videos")
-@CrossOrigin("*")
+
+@CrossOrigin("http://localhost:5173")
 public class VideoController {
     @Autowired
     private VideoService videoService;
@@ -172,6 +174,64 @@ public class VideoController {
 
 
     }
+    //serve hls playlist
+
+    //master.m2u8 file
+
+    @Value("${file.video.hls}")
+    private String HLS_DIR;
+
+    @GetMapping("/{videoId}/master.m3u8")
+    public ResponseEntity<Resource> serverMasterFile(
+            @PathVariable String videoId
+    ) {
+
+//        creating path
+        Path path = Paths.get(HLS_DIR, videoId, "master.m3u8");
+
+        System.out.println(path);
+
+        if (!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
+                )
+                .body(resource);
+
+
+    }
+
+    //serve the segments
+
+    @GetMapping("/{videoId}/{segment}.ts")
+    public ResponseEntity<Resource> serveSegments(
+            @PathVariable String videoId,
+            @PathVariable String segment
+    ) {
+
+        // create path for segment
+        Path path = Paths.get(HLS_DIR, videoId, segment + ".ts");
+        if (!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "video/mp2t"
+                )
+                .body(resource);
+
+    }
+
 
 
 }
